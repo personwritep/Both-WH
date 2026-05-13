@@ -1,0 +1,133 @@
+// ==UserScript==
+// @name         Both-WH
+// @namespace    http://tampermonkey.net/
+// @version      0.18
+// @description  通常表示・HTML表示の編集箇所の往復
+// @author       Ameba Blog User
+// @match        https://blog.ameba.jp/ucs/entry/srventry*
+// @grant        none
+// ==/UserScript==
+
+
+( window.onload = function() {
+    'use strict';
+
+var native_line; // 通常表示のスクロール位置
+
+var target = document.getElementById('cke_1_contents'); // 監視 target は3箇所で共用される
+var monitor1 = new MutationObserver( catch_key );
+monitor1.observe(target, {childList: true}); // ショートカット待受け開始
+
+catch_key();
+
+function catch_key() {
+
+if( document.querySelector('.cke_wysiwyg_frame') != null ){
+var editor_iframe = document.querySelector('.cke_wysiwyg_frame');
+var iframe_doc = editor_iframe.contentWindow.document;
+
+iframe_doc.onkeydown = keydown;
+function keydown(event) {
+   if (event.which == 17 || event.ctrlKey == true ) {
+   if (event.which == 119 || event.keyCode == 119) { set_mark(); }}};
+
+
+var set_mark = function() {
+
+var selection = iframe_doc.getSelection();
+var range = selection.getRangeAt(0);
+var insert_node = iframe_doc.createTextNode("█"); // U+2588 Full Glock
+range.insertNode( insert_node ); // カーソル位置にマーク文字を書き込む
+
+var wysiwyg = iframe_doc.querySelector('html');
+native_line = wysiwyg.scrollTop; // 通常表示のスクロール位置を記録
+
+document.querySelector('button[data-mode="source"]').click( in_CodeMirror() ); // HTML表示に移動
+
+function in_CodeMirror() {
+    var monitor2 = new MutationObserver( task_CodeMirror );
+    monitor2.observe(target, {childList: true});
+
+function task_CodeMirror() {
+
+function key_in( key_Code ) {
+    var keyEvent = new KeyboardEvent("keydown", { keyCode: key_Code });
+    document.querySelector('.CodeMirror textarea').dispatchEvent( keyEvent ); }
+
+var line_count =0;
+var result = -1;
+while( result < 0 && line_count <3000 ) {
+    if( document.querySelector('.CodeMirror-activeline pre') != null ) {
+        result = document.querySelector('.CodeMirror-activeline pre').textContent.indexOf( "█" );
+        line_count += 1; }
+        if( result < 0 ) { key_in(40); } } // アクティブ行を下方へ移動
+
+var activeline = document.querySelector('.CodeMirror-activeline pre');
+result -= 3*( activeline.getElementsByClassName('cm-tab').length );
+
+for( var i=0; i <= result; i++) { key_in(39); } // アクティブ行内で右方へ移動
+
+var pattern = [
+        '\ud83c[\udf00-\udfff]',
+        '\ud83d[\udc00-\ude4f]',
+        '\ud83d[\ude80-\udeff]',
+        '\ud7c9[\ude00-\udeff]',
+        '[\u2600-\u27BF]'
+        ].join('|');
+var regex = RegExp( pattern );
+if( regex.test( activeline.textContent ) == false ){ key_in(8); } // 絵文字無ければマーク文字削除
+
+var codemirror_scroll = document.querySelector('.CodeMirror-scroll');
+var win_height = codemirror_scroll.clientHeight;
+var styles = getComputedStyle( document.querySelector('.cm-bracket') );
+var line_height = parseFloat( styles.lineHeight );
+var scroll =0;
+if( line_count*line_height >= 0.4*win_height ){
+    if( line_count*line_height >= win_height ){ scroll = 0.6*win_height; }
+    else { scroll = line_count*line_height - 0.4*win_height; } }
+codemirror_scroll.scrollTop += scroll;
+
+document.querySelector('.CodeMirror textarea').focus(); // 入力窓にカーソルを入れる
+
+monitor2.disconnect(); } // task_CodeMirrorの終了で監視ループを抜ける
+} // in_CodeMirror
+} // set_mark
+} // WYSIWYG表示での場合
+
+
+else if( document.querySelector('.CodeMirror') != null ) {
+
+document.querySelector('.CodeMirror').onkeydown = keydown;
+function keydown(event) {
+    if (event.which == 17 || event.ctrlKey == true ) {
+    if (event.which == 119 || event.keyCode == 119) { to_native_line(); }}};
+
+var to_native_line = function() {
+
+document.querySelector('button[data-mode="wysiwyg"]').click( in_wysiwyg() ); // 通常表示に移動
+
+function in_wysiwyg() {
+    var monitor3 = new MutationObserver( task_wysiwyg );
+    monitor3.observe( target, { childList: true });
+
+task_wysiwyg();
+
+function task_wysiwyg() {
+
+if( document.querySelector('.cke_wysiwyg_frame') !=null ) {
+    editor_iframe = document.querySelector('.cke_wysiwyg_frame');
+    iframe_doc = editor_iframe.contentWindow.document;
+    var wysiwyg = iframe_doc.querySelector('html');
+
+wysiwyg.scrollTop = native_line; // 記録された通常表示のスクロール位置に移動
+
+if( wysiwyg.scrollTop ==native_line ) {
+    monitor3.disconnect(); }} } // task_wysiwyg の終了で監視ループを抜ける
+
+} // in_wysiwyg
+} // to_native_line
+} // HTML表示での場合
+
+} // catch_key
+
+})();
