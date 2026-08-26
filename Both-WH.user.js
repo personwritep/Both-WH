@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name        Both-WH ⭐
 // @namespace        http://tampermonkey.net/
-// @version        3.4
+// @version        3.5
 // @description        「通常表示」「HTML表示」のカーソル位置を「Ctrl+F8」で往復する
 // @author        Ameba Blog User
-// @match        https://blog.ameba.jp/ucs/entry/srventry*
-// @exclude        https://blog.ameba.jp/ucs/entry/srventrylist.do*
+// @match        https://blog.ameba.jp/ucs/entry/srventryinsertinput.do*
+// @match        https://blog.ameba.jp/ucs/entry/srventryupdateinput.do*
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=ameblo.jp
 // @grant        none
 // @updateURL        https://github.com/personwritep/Both-WH/raw/main/Both-WH.user.js
