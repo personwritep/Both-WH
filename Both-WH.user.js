@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        Both-WH ⭐
+// @name        Both-WH ⭐　🟥✳️
 // @namespace        http://tampermonkey.net/
-// @version        3.5
+// @version        3.6
 // @description        「通常表示」「HTML表示」のカーソル位置を「Ctrl+F8」で往復する
 // @author        Ameba Blog User
 // @match        https://blog.ameba.jp/ucs/entry/srventryinsertinput.do*
@@ -11,6 +11,9 @@
 // @updateURL        https://github.com/personwritep/Both-WH/raw/main/Both-WH.user.js
 // @downloadURL        https://github.com/personwritep/Both-WH/raw/main/Both-WH.user.js
 // ==/UserScript==
+
+
+let listen=Symbol();
 
 
 let retry=0;
@@ -52,10 +55,12 @@ function main(){
             if(iframe_doc.querySelector('#i')){
                 iframe_doc.querySelector('#i').remove(); } // 安全モードの場合に通常表示に戻り自動削除🔴
 
-            iframe_doc.addEventListener('keydown', check_key);
+            if(!iframe_doc[listen]){
+                iframe_doc.addEventListener('keydown', check_key);
+                iframe_doc[listen]=true; }
+
             function check_key(event){
-                if(event.which==17 || event.ctrlKey==true){
-                    if(event.which==119 || event.keyCode==119){ set_mark(); }}}
+                if(event.ctrlKey && event.keyCode==119){ set_mark(); }} //「Ctrl+F8」
 
 
             function set_mark(){
@@ -142,13 +147,16 @@ function main(){
                             monitor2.disconnect(); } // task_CodeMirrorの終了で監視ループを抜ける
                     }} // in_CodeMirror
             } // set_mark
-        } // WYSIWYG表示での場合
+        } // WYSIWYG表示の場合
 
 
         else if(document.querySelector('.CodeMirror') !=null){ //「HTML表示」から実行開始
-            document.querySelector('.CodeMirror').addEventListener('keydown', function(event){
-                if(event.which==17 || event.ctrlKey==true){
-                    if(event.which==119 || event.keyCode==119){ to_native_line(); }}});
+            let code_mirror=document.querySelector('.CodeMirror');
+            if(!code_mirror[listen]){
+                code_mirror.addEventListener('keydown', function(event){
+                    if(event.ctrlKey==true && event.keyCode==119){
+                        to_native_line(); }});
+                code_mirror[listen]=true; }
 
 
             function to_native_line(){
@@ -172,7 +180,7 @@ function main(){
                                 monitor3.disconnect(); }}} // task_wysiwyg の終了で監視ループを抜ける
                 } // in_wysiwyg
             } // to_native_line
-        } // HTML表示での場合
+        } // HTML表示の場合
     } // catch_key
 
 }
