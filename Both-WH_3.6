@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Both-WH ⭐　🟥✳️
+// @name        Both-WH ⭐
 // @namespace        http://tampermonkey.net/
 // @version        3.6
 // @description        「通常表示」「HTML表示」のカーソル位置を「Ctrl+F8」で往復する
